@@ -4,7 +4,10 @@
 
 return [
     '_twig_error_test' => [['code', '_format'], ['_controller' => 'twig.controller.preview_error::previewErrorPageAction', '_format' => 'html'], ['code' => '\\d+'], [['variable', '.', '[^/]++', '_format', true], ['variable', '/', '\\d+', 'code', true], ['text', '/_error']], [], []],
-    'user' => [[], ['_controller' => 'App\\Controller\\UserController::register'], [], [['text', '/api/user']], [], []],
+    'partenaire' => [[], ['_controller' => 'App\\Controller\\PartenaireController::ajoutp'], [], [['text', '/partenaire']], [], []],
+    'ajoutcompte' => [[], ['_controller' => 'App\\Controller\\PartenaireController::ajoutcompte'], [], [['text', '/ajoutcompte']], [], []],
+    'user' => [[], ['_controller' => 'App\\Controller\\UserController::ajoutcaissier'], [], [['text', '/api/ajoutcaissier']], [], []],
+    'depot' => [[], ['_controller' => 'App\\Controller\\UserController::Depot'], [], [['text', '/api/depot']], [], []],
     'login' => [[], ['_controller' => 'App\\Controller\\UserController::login'], [], [['text', '/api/login_check']], [], []],
     'api_entrypoint' => [['index', '_format'], ['_controller' => 'api_platform.action.entrypoint', '_format' => '', '_api_respond' => 'true', 'index' => 'index'], ['index' => 'index'], [['variable', '.', '[^/]++', '_format', true], ['variable', '/', 'index', 'index', true], ['text', '/api']], [], []],
     'api_doc' => [['_format'], ['_controller' => 'api_platform.action.documentation', '_format' => '', '_api_respond' => 'true'], [], [['variable', '.', '[^/]++', '_format', true], ['text', '/api/docs']], [], []],

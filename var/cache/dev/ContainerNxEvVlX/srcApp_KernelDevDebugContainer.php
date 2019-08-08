@@ -1,6 +1,6 @@
 <?php
 
-namespace ContainerFPslupb;
+namespace ContainerNxEvVlX;
 
 use Symfony\Component\DependencyInjection\Argument\RewindableGenerator;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -58,6 +58,7 @@ class srcApp_KernelDevDebugContainer extends Container
         ];
         $this->fileMap = [
             'App\\Controller\\ApiController' => 'getApiControllerService.php',
+            'App\\Controller\\PartenaireController' => 'getPartenaireControllerService.php',
             'App\\Controller\\UserController' => 'getUserControllerService.php',
             'Symfony\\Bundle\\FrameworkBundle\\Controller\\RedirectController' => 'getRedirectControllerService.php',
             'Symfony\\Bundle\\FrameworkBundle\\Controller\\TemplateController' => 'getTemplateControllerService.php',
