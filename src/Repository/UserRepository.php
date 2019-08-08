@@ -36,15 +36,12 @@ class UserRepository extends ServiceEntityRepository
     }
     */
 
-    /*
-    public function findOneBySomeField($value): ?User
-    {
+    public function findByUsername($value): ? User{
         return $this->createQueryBuilder('u')
-            ->andWhere('u.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
+        ->andWhere('u.username = :val')
+        ->setParameter('val' ,$value)
+        ->getQuery()
+        ->getOneOrNullResult()
         ;
-    }
-    */
+        }
 }

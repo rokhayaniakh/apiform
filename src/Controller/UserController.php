@@ -7,6 +7,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -23,7 +24,8 @@ use App\Entity\Depot;
 class UserController extends AbstractController
 {
     /**
-     * @Route("/user", name="user",methods={"POST"})
+     * @Route("/user", name="users",methods={"POST"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
     {
@@ -31,15 +33,18 @@ class UserController extends AbstractController
         $form = $this->createForm(UserType::class, $user);
         $form->handleRequest($request);
         $data = $request->request->all();
+        $file = $request->files->all()['imageName'];
         $form->submit($data);
         if ($form->isSubmitted()) {
-            $user->setRoles($user->getRoles());
             $user->setPassword(
                 $passwordEncoder->encodePassword(
                     $user,
                     $form->get('password')->getData()
                 )
             );
+            $user->setRoles($user->getRoles());
+            $user->setImageFile($file);
+            $user->setUpdatedAt(new \DateTime());
             $errors = $validator->validate($user);
             if (count($errors)) {
                 $errors = $serializer->serialize($errors, 'json');
@@ -63,7 +68,8 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/ajoutcaissier", name="user",methods={"POST"})
+     * @Route("/ajoutcaissier", name="ajoutc",methods={"POST"})
+     * @IsGranted("ROLE_SUPER_ADMIN")
      */
     public function ajoutcaissier(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
     {
@@ -104,6 +110,7 @@ class UserController extends AbstractController
     }
     /**
      * @Route("/depot",name="depot",methods={"POST"})
+     * @IsGranted("ROLE_CAISSIER")
      */
     public function Depot(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
     {

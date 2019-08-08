@@ -7,6 +7,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -22,6 +23,7 @@ class PartenaireController extends AbstractController
 {
     /**
      * @Route("/partenaire", name="partenaire")
+     * @IsGranted("ROLE_SUPER_ADMIN")
      */
     public function ajoutp(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
     {
@@ -58,6 +60,8 @@ class PartenaireController extends AbstractController
                 $data = $request->request->all();
                 $form->submit($data);
                 if ($form->isSubmitted()) {
+                    $user->setIdpartenaire($par);
+                    $user->setIdcompte($comp);
                     $user->setRoles(["ROLE_ADMIN"]);
                     $user->setPassword(
                         $passwordEncoder->encodePassword(
@@ -91,6 +95,7 @@ class PartenaireController extends AbstractController
     }
     /**
      * @Route("/ajoutcompte",name="ajoutcompte",methods={"POST"})
+     * @IsGranted("ROLE_SUPER_ADMIN")
      */
 
     public function ajoutcompte(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
