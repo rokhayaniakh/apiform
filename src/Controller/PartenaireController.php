@@ -2,25 +2,62 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use App\Entity\User;
+use App\Entity\Compte;
+use App\Form\UserType;
+use App\Form\CompteType;
+use App\Entity\Partenaire;
+use App\Form\PartenaireType;
+use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use App\Form\UserType;
-use App\Form\PartenaireType;
-use App\Form\CompteType;
-use App\Entity\User;
-use App\Entity\Partenaire;
-use App\Entity\Compte;
-
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use App\Repository\PartenaireRepository;
 
 class PartenaireController extends AbstractController
 {
+
+    /**
+     * @Route("/",name="partenaireIndex",methods={"GET"})
+     */
+    public function index(PartenaireRepository $partenaireRepository)
+    {
+
+        // Configure Dompdf according to your needs
+        $pdfOptions = new Options();
+        $pdfOptions->set('defaultFont', 'Arial');
+
+        // Instantiate Dompdf with our options
+        $dompdf = new Dompdf($pdfOptions);
+
+        // Retrieve the HTML generated in our twig file
+        $html = $this->renderView('/index.html.twig', [
+            'partenaires'=>$partenaireRepository->findAll(),
+        ]);
+
+        // Load HTML to Dompdf
+        $dompdf->loadHtml($html);
+
+        // (Optional) Setup the paper size and orientation 'portrait' or 'portrait'
+        $dompdf->setPaper('A4', 'portrait');
+
+        // Render the HTML as PDF
+        $dompdf->render();
+
+        // Output the generated PDF to Browser (force download)
+        $dompdf->stream("listepartenaire.pdf", [
+            "Attachment" => false
+        ]);
+    }
     /**
      * @Route("/partenaire", name="partenaire")
      * @IsGranted("ROLE_SUPER_ADMIN")
@@ -80,8 +117,8 @@ class PartenaireController extends AbstractController
                     $entityManager->persist($user);
                     $entityManager->flush();
                     $data = [
-                        'statu' => 201,
-                        'messag' => 'Le partenaire a été créé'
+                        'stat' => 201,
+                        'messa' => 'Le partenaire a été créé'
                     ];
                     return new JsonResponse($data, 201);
                 }
@@ -127,4 +164,5 @@ class PartenaireController extends AbstractController
         ];
         return new JsonResponse($data, 500);
     }
+
 }

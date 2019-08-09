@@ -2,20 +2,23 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Entity\User;
+use App\Entity\Depot;
+use App\Entity\Compte;
 use App\Form\UserType;
 use App\Form\DepotType;
-use App\Entity\User;
-use App\Entity\Compte;
-use App\Entity\Depot;
+use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
  * @Route("/api")
@@ -23,6 +26,13 @@ use App\Entity\Depot;
 
 class UserController extends AbstractController
 {
+
+    private $passwordEncoder;
+
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder)
+    {
+        $this->passwordEncoder = $passwordEncoder;
+    }
     /**
      * @Route("/user", name="users",methods={"POST"})
      * @IsGranted("ROLE_ADMIN")
@@ -55,8 +65,8 @@ class UserController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
             $data = [
-                'statu' => 201,
-                'messag' => 'L\'utilisateur a été créé'
+                'stat' => 201,
+                'messa' => 'L\'utilisateur a été créé'
             ];
             return new JsonResponse($data, 201);
         }
@@ -98,7 +108,7 @@ class UserController extends AbstractController
             $entityManager->flush();
             $data = [
                 'statu' => 201,
-                'messag' => 'Le caissier a été créé'
+                'mesag' => 'Le caissier a été créé'
             ];
             return new JsonResponse($data, 201);
         }
@@ -156,4 +166,73 @@ class UserController extends AbstractController
             'roles' => $user->getRoles()
         ]);
     }
+
+    /**
+     * @Route("/login", name="login", methods={"POST"})
+     * @param JWTEncoderInterface $JWTEncoder
+     * @throws \Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTEncodeFailureException
+     */
+    public function bloquer(Request $request, JWTEncoderInterface  $JWTEncoder)
+    {
+
+        $values = json_decode($request->getContent());
+        $username   = $values->username;
+        $password   = $values->password;
+        $repo = $this->getDoctrine()->getRepository(User::class);
+        $user = $repo->findOneBy(['username' => $username]);
+        if (!$user) {
+            return $this->json([
+                'mesag' => 'Username incorrect'
+            ]);
+        }
+
+        $isValid = $this->passwordEncoder
+            ->isPasswordValid($user, $password);
+        if (!$isValid) {
+            return $this->json([
+                'messag' => 'Mot de passe incorect'
+            ]);
+        }
+        if ($user->getStatus() == "bloquer") {
+            return $this->json([
+                'message' => 'ACCÈS REFUSÉ vous ne pouvez pas connecter !'
+            ]);
+        }
+        $token = $JWTEncoder->encode([
+            'usernam' => $user->getUsername(),
+            'exp' => time() + 86400 // 1 day expiration
+        ]);
+
+        return $this->json([
+            'token' => $token
+        ]);
+    }
+
+    /** 
+     * @Route("/bloquer" , name="bloquer", methods={"POST"})
+     */
+    public function bloquerdebloquer(Request $request, UserRepository $userRepo, EntityManagerInterface $entityManager): Response
+    {
+        $values = json_decode($request->getContent());
+        $user = $userRepo->findOneByUsername($values->username);
+        if ($user->getStatus() == "debloquer") {
+            $user->SetStatus("bloquer");
+            $entityManager->flush();
+            $data = [
+                'statu' => 200,
+                'messag' => 'utilisateur bloquer'
+            ];
+            return new JsonResponse($data);
+        } else {
+            $user->SetStatus("debloquer");
+
+            $entityManager->flush();
+            $data = [
+                'status' => 200,
+                'message' => 'utilisateur debloquer'
+            ];
+            return new JsonResponse($data);
+        }
+    }
 }
+
