@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 /**
  * @ApiResource()
@@ -50,11 +52,23 @@ class Transaction
 
     /**
      * @ORM\Column(type="integer", nullable=true)
+     * @Assert\Length(
+     *      min = 9,
+     *      max = 9,
+     *      minMessage = "valeur minimum 9",
+     *      maxMessage = "valeur maximum 9"
+     * )
      */
     private $tel;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
+     * @Assert\Length(
+     *      min = 13,
+     *      max = 13,
+     *      minMessage = "valeur minimum 13",
+     *      maxMessage = "valeur maximum 13"
+     * )
      */
     private $cni;
 
@@ -80,6 +94,12 @@ class Transaction
 
     /**
      * @ORM\Column(type="integer", nullable=true)
+     * @Assert\Length(
+     *      min = 9,
+     *      max = 9,
+     *      minMessage = "valeur minimum 9",
+     *      maxMessage = "valeur maximum 9"
+     * )
      */
     private $tele;
 
