@@ -44,9 +44,9 @@ class UserType extends AbstractType
             ->add('status')
             ->add('imageFile' ,VichImageType::class)
             #->add('updatedAt')
-            ->add('idcompte', EntityType::class ,['class'=>Compte::class,'choice_label' =>'idcompte']
-            )
-            ->add('idpartenaire',EntityType::class ,['class'=>Partenaire::class,'choice_label' =>'idpartenaire'])
+            // ->add('idcompte', EntityType::class ,['class'=>Compte::class,'choice_label' =>'idcompte']
+            //)
+            // ->add('idpartenaire',EntityType::class ,['class'=>Partenaire::class,'choice_label' =>'idpartenaire'])
             
             ;
     }

@@ -23,11 +23,12 @@ use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use App\Repository\PartenaireRepository;
 
+
 class PartenaireController extends AbstractController
 {
 
     /**
-     * @Route("/",name="partenaireIndex",methods={"GET"})
+     * @Route("/partenaire" ,methods={"GET"})
      */
     public function index(PartenaireRepository $partenaireRepository)
     {
@@ -40,8 +41,8 @@ class PartenaireController extends AbstractController
         $dompdf = new Dompdf($pdfOptions);
 
         // Retrieve the HTML generated in our twig file
-        $html = $this->renderView('/index.html.twig', [
-            'partenaires'=>$partenaireRepository->findAll(),
+        $html = $this->renderView('partenaire/index.html.twig', [
+            'partenaires' => $partenaireRepository->findAll(),
         ]);
 
         // Load HTML to Dompdf
@@ -54,7 +55,7 @@ class PartenaireController extends AbstractController
         $dompdf->render();
 
         // Output the generated PDF to Browser (force download)
-        $dompdf->stream("listepartenaire.pdf", [
+        $dompdf->stream("contrat_de_prestation.pdf", [
             "Attachment" => false
         ]);
     }
@@ -164,5 +165,4 @@ class PartenaireController extends AbstractController
         ];
         return new JsonResponse($data, 500);
     }
-
 }

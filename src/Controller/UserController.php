@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Entity\Partenaire;
 use App\Entity\Depot;
 use App\Entity\Compte;
 use App\Form\UserType;
@@ -52,6 +53,8 @@ class UserController extends AbstractController
                     $form->get('password')->getData()
                 )
             );
+            $partenaire = $this->getUser()->getIdpartenaire();
+            $user->setIdpartenaire($partenaire);
             $user->setRoles($user->getRoles());
             $user->setImageFile($file);
             $user->setUpdatedAt(new \DateTime());
@@ -72,7 +75,7 @@ class UserController extends AbstractController
         }
         $data = [
             'stat' => 500,
-            'mess' => 'Erreur!!!'
+            'mess' => 'Erreur!!!!'
         ];
         return new JsonResponse($data, 500);
     }
@@ -107,8 +110,8 @@ class UserController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
             $data = [
-                'statu' => 201,
-                'mesag' => 'Le caissier a été créé'
+                'stat' => 201,
+                'mesage' => 'Le caissier a été créé'
             ];
             return new JsonResponse($data, 201);
         }
@@ -168,13 +171,12 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/login", name="login", methods={"POST"})
+     * @Route("/login_check", name="login", methods={"POST"})
      * @param JWTEncoderInterface $JWTEncoder
      * @throws \Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTEncodeFailureException
      */
     public function bloquer(Request $request, JWTEncoderInterface  $JWTEncoder)
     {
-
         $values = json_decode($request->getContent());
         $username   = $values->username;
         $password   = $values->password;
@@ -182,20 +184,19 @@ class UserController extends AbstractController
         $user = $repo->findOneBy(['username' => $username]);
         if (!$user) {
             return $this->json([
-                'mesag' => 'Username incorrect'
+                'msag' => 'Username incorrect'
             ]);
         }
-
         $isValid = $this->passwordEncoder
             ->isPasswordValid($user, $password);
         if (!$isValid) {
             return $this->json([
-                'messag' => 'Mot de passe incorect'
+                'mesage' => 'Mot de passe incorect'
             ]);
         }
         if ($user->getStatus() == "bloquer") {
             return $this->json([
-                'message' => 'ACCÈS REFUSÉ vous ne pouvez pas connecter !'
+                'mesag' => 'ACCÈS REFUSÉ vous ne pouvez pas connecter !'
             ]);
         }
         $token = $JWTEncoder->encode([
@@ -225,7 +226,6 @@ class UserController extends AbstractController
             return new JsonResponse($data);
         } else {
             $user->SetStatus("debloquer");
-
             $entityManager->flush();
             $data = [
                 'status' => 200,
@@ -234,5 +234,28 @@ class UserController extends AbstractController
             return new JsonResponse($data);
         }
     }
-}
+
+    /**
+     * @Route("/ajoutcompteuser",name="ajoutcompteuser",methods={"POST"})
+     */
+
+    public function ajoutcomptuser(Request $request, UserRepository $userRepo, EntityManagerInterface $entityManager)
+    {
+        $values = json_decode($request->getContent());
+        $user = $userRepo->findOneByUsername($values->username);
+        if (!$user) {
+            return $this->json([
+                'mesag' => 'Username incorrect'
+            ]);
+        }
+        $rec = $this->getDoctrine()->getRepository(Compte::class)->findOneBy(['numbcompte' => $values->idcompte]);
+            $user->SetIdcompte($rec);
+            $entityManager->flush();
+            $data = [
+                'status' => 200,
+                'message' => 'Affectation de compte réussie !'
+            ];
+            return new JsonResponse($data);
+        }
+    }
 

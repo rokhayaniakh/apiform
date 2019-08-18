@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+{% block title %}Hello PartenaireController!
+{% endblock %}
+{% block body %}
+<h1>Partenaire</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>rs</th>
+            <th>ninea</th>
+            <th>adresse</th>
+            <th>status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for Partenaire in partenaires %}
+            <tr>
+                <td>{{Partenaire.id}}</td>
+                <td>{{Partenaire.rs}}</td>
+                <td>{{Partenaire.ninea}}</td>
+                <td>{{Partenaire.adresse}}</td>
+                <td>{{Partenaire.status}}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
