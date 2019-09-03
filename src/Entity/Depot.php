@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -15,21 +17,25 @@ class Depot
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"depot"})
      */
     private $id;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="integer", nullable=true)*
+     * @Groups({"depot"})
      */
     private $montant;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
+     * @Groups({"depot"})
      */
     private $date;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Compte", inversedBy="depots")
+     * @Groups({"depot"})
      */
     private $idcompte;
 

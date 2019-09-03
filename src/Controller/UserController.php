@@ -8,6 +8,7 @@ use App\Entity\Depot;
 use App\Entity\Compte;
 use App\Form\UserType;
 use App\Form\DepotType;
+use App\Repository\DepotRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,10 +22,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
+
 /**
  * @Route("/api")
  */
-
 class UserController extends AbstractController
 {
 
@@ -36,7 +37,6 @@ class UserController extends AbstractController
     }
     /**
      * @Route("/user", name="users",methods={"POST"})
-     * @IsGranted("ROLE_ADMIN")
      */
     public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
     {
@@ -53,16 +53,19 @@ class UserController extends AbstractController
                     $form->get('password')->getData()
                 )
             );
+        
             $partenaire = $this->getUser()->getIdpartenaire();
             $user->setIdpartenaire($partenaire);
-            $user->setRoles($user->getRoles());
+            //var_dump($data['roles']);die();
+            $a=$data['roles'];
+            $user->setRoles(["ROLE_$a"]);
             $user->setImageFile($file);
             $user->setUpdatedAt(new \DateTime());
             $errors = $validator->validate($user);
             if (count($errors)) {
                 $errors = $serializer->serialize($errors, 'json');
                 return new Response($errors, 500, [
-                    'Content-Type' => 'application/json'
+                    'Content-Typ' => 'applicatio/json'
                 ]);
             }
             $entityManager->persist($user);
@@ -79,10 +82,8 @@ class UserController extends AbstractController
         ];
         return new JsonResponse($data, 500);
     }
-
     /**
      * @Route("/ajoutcaissier", name="ajoutc",methods={"POST"})
-     * @IsGranted("ROLE_SUPER_ADMIN")
      */
     public function ajoutcaissier(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
     {
@@ -90,9 +91,13 @@ class UserController extends AbstractController
         $form = $this->createForm(UserType::class, $user);
         $form->handleRequest($request);
         $data = $request->request->all();
+        $file = $request->files->all()['imageName'];
         $form->submit($data);
         if ($form->isSubmitted()) {
-            $user->setRoles(["ROLE_CAISSIER"]);
+            $a=$data['roles'];
+            $user->setRoles(["ROLE_$a"]);
+            $user->setImageFile($file);
+            $user->setUpdatedAt(new \DateTime());
             $user->setPassword(
                 $passwordEncoder->encodePassword(
                     $user,
@@ -123,7 +128,6 @@ class UserController extends AbstractController
     }
     /**
      * @Route("/depot",name="depot",methods={"POST"})
-     * @IsGranted("ROLE_CAISSIER")
      */
     public function Depot(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
     {
@@ -165,8 +169,8 @@ class UserController extends AbstractController
     {
         $user = $this->getUser();
         return $this->json([
-            'username' => $user->getUsername(),
-            'roles' => $user->getRoles()
+            'usernam' => $user->getUsername(),
+            'role' => $user->getRoles()
         ]);
     }
 
@@ -200,7 +204,8 @@ class UserController extends AbstractController
             ]);
         }
         $token = $JWTEncoder->encode([
-            'usernam' => $user->getUsername(),
+            'username' => $user->getUsername(),
+            'roles' => $user->getRoles(),
             'exp' => time() + 86400 // 1 day expiration
         ]);
 
@@ -241,21 +246,49 @@ class UserController extends AbstractController
 
     public function ajoutcomptuser(Request $request, UserRepository $userRepo, EntityManagerInterface $entityManager)
     {
-        $values = json_decode($request->getContent());
-        $user = $userRepo->findOneByUsername($values->username);
+
+        $user = new User();
+        $form = $this->createForm(UserType::class, $user);
+        $form->handleRequest($request);
+        $data = $request->request->all();
+        $form->submit($data);
+        $user = $userRepo->findOneBy(['username' => $data]);
         if (!$user) {
             return $this->json([
                 'mesag' => 'Username incorrect'
             ]);
         }
-        $rec = $this->getDoctrine()->getRepository(Compte::class)->findOneBy(['numbcompte' => $values->idcompte]);
-            $user->SetIdcompte($rec);
-            $entityManager->flush();
-            $data = [
-                'status' => 200,
-                'message' => 'Affectation de compte réussie !'
-            ];
-            return new JsonResponse($data);
-        }
+        $rec = $this->getDoctrine()->getRepository(Compte::class)->findOneBy(['numbcompte' => $data]);
+        $user->SetIdcompte($rec);
+        $entityManager->flush();
+        $data = [
+            'status' => 200,
+            'message' => 'Affectation de compte réussie !'
+        ];
+        return new JsonResponse($data);
     }
 
+    /**
+     * @Route("/listerUser" , name="listerUser" ,methods={"GET"})
+     */
+    public function ListerUser(UserRepository $userRepository, SerializerInterface $serializer)
+    {
+        $user = $userRepository->findAll();
+        $users = $serializer->serialize($user, 'json', ['groups' => ['users']]);
+        return new Response($users, 200, [
+            'Content-Type' => 'application/json'
+        ]);
+    }
+    /**
+     * @Route("/listerdepot" , name="listerdepot" ,methods={"GET"})
+     */
+    public function Historique(DepotRepository $depotRepository, SerializerInterface $serializer)
+    {
+        $depot = $depotRepository->findAll();
+        $depots = $serializer->serialize($depot, 'json', ['groups' => ['depot']]);
+        return new Response($depots, 200, [
+            'Content-Types' => 'applicatio/json'
+        ]);
+    }
+
+}

@@ -14,9 +14,7 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        main:
-            json_login:
-                check_path: /api/login_check
+    
         login:
             pattern:  ^/api/login
             stateless: true
@@ -32,6 +30,10 @@ security:
             guard:
                 authenticators:
                     - lexik_jwt_authentication.jwt_token_authenticator
+
+        # main:
+        #     json_login:
+        #         check_path: /api/login_check
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used

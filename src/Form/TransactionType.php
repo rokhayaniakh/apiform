@@ -17,13 +17,14 @@ class TransactionType extends AbstractType
         $builder
             ->add('agence')
             ->add('somme')
+            ->add('somme')
             // ->add('frais')
             ->add('nomcomplet')
             ->add('nomcompletben')
             ->add('tel')
             ->add('cni')
             ->add('tele')
-            ->add('iduser')
+            // ->add('iduser')
             ->add('idtype', EntityType::class ,['class'=>Type::class,'choice_label' =>'idtype'])
         ;
     }

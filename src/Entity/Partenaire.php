@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -22,12 +23,14 @@ class Partenaire
     private $id;
 
     /**
+     * @Groups({"partenaires"})
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Assert\NotBlank(message="Le champ ne doit pas être vide")
      */
     private $rs;
 
     /**
+     *  @Groups({"partenaires"})
      * @ORM\Column(type="integer", nullable=true)
      * @Assert\NotBlank(message="Le champ ne doit pas être vide")
      * @Assert\Length(min="8" ,max="8")
@@ -35,16 +38,19 @@ class Partenaire
     private $ninea;
 
     /**
+     *  @Groups({"partenaires"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $adresse;
 
     /**
+     *  @Groups({"partenaires"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $status;
 
     /**
+     *  @Groups({"partenaires"})
      * @ORM\OneToMany(targetEntity="App\Entity\Compte", mappedBy="idpartenaire")
      */
     private $comptes;

@@ -4,24 +4,32 @@ namespace Symfony\Component\VarExporter\Internal;
 
 return $getExpiry ? PHP_INT_MAX : Hydrator::hydrate(
     $o = [
-        clone (($p = &Registry::$prototypes)['Doctrine\\ORM\\Mapping\\Column'] ?? Registry::p('Doctrine\\ORM\\Mapping\\Column')),
+        clone (($p = &Registry::$prototypes)['Symfony\\Component\\Serializer\\Annotation\\Groups'] ?? Registry::p('Symfony\\Component\\Serializer\\Annotation\\Groups')),
+        clone ($p['Doctrine\\ORM\\Mapping\\Column'] ?? Registry::p('Doctrine\\ORM\\Mapping\\Column')),
         clone ($p['Symfony\\Component\\Validator\\Constraints\\NotBlank'] ?? Registry::p('Symfony\\Component\\Validator\\Constraints\\NotBlank')),
         clone ($p['Symfony\\Component\\Validator\\Constraints\\Length'] ?? Registry::p('Symfony\\Component\\Validator\\Constraints\\Length')),
     ],
     null,
     [
+        'Symfony\\Component\\Serializer\\Annotation\\Groups' => [
+            'groups' => [
+                [
+                    'partenaires',
+                ],
+            ],
+        ],
         'stdClass' => [
             'type' => [
-                'integer',
+                1 => 'integer',
             ],
             'nullable' => [
-                true,
+                1 => true,
             ],
             'message' => [
-                1 => 'Le champ ne doit pas être vide',
+                2 => 'Le champ ne doit pas être vide',
             ],
             'groups' => [
-                1 => [
+                2 => [
                     'Default',
                 ],
                 [
@@ -29,10 +37,10 @@ return $getExpiry ? PHP_INT_MAX : Hydrator::hydrate(
                 ],
             ],
             'max' => [
-                2 => '8',
+                3 => '8',
             ],
             'min' => [
-                2 => '8',
+                3 => '8',
             ],
         ],
     ],
@@ -40,6 +48,7 @@ return $getExpiry ? PHP_INT_MAX : Hydrator::hydrate(
         $o[0],
         $o[1],
         $o[2],
+        $o[3],
     ],
     []
 );

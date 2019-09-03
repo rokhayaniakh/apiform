@@ -47,6 +47,8 @@ class TransController extends AbstractController
                 }
             }
             $user = $this->getUser();
+            // $user=getIdcompte();
+            // var_dump($user);die();
             $tran->setIduser($user);
             $tran->setFrais($values);
             $rec = $this->getDoctrine()->getRepository(Compte::class)->findOneBy(['numbcompte' => $data]);
@@ -58,11 +60,6 @@ class TransController extends AbstractController
                     $errors = $serializer->serialize($errors, 'json');
                     return new Response($errors, 500);
                 }
-                // $typ = new Type();
-                // $form = $this->createForm(TypetransType::class, $typ);
-                // $form->handleRequest($request);
-                // $data = $request->request->all();
-                // $form->submit($data);
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($tran);
                 $entityManager->flush();
@@ -75,42 +72,41 @@ class TransController extends AbstractController
     /**
      * @Route("/retrait", name="retrait")
      */
-    public function retrait(Request $request,EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
+    public function retrait(Request $request,  TransactionRepository $transRepo, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
     {
-        $retrait = new Transaction();
-        $form = $this->createForm(TransactionType::class, $retrait);
+        $trans = new Transaction();
+        $form = $this->createForm(TransactionType::class, $trans);
         $form->handleRequest($request);
         $data = $request->request->all();
         $form->submit($data);
+
         if ($form->isSubmitted()) {
-            $retrait->setDater(new \DateTime());
-            $valeur = $form->get('somme')->getData();
-            $tarif = $this->getDoctrine()->getRepository(Tarifs::class)->findAll();
-            foreach ($tarif as $values) {
-                $values->getBorneInferieur();
-                $values->getBorneSuperieur();
-                $values->getValeur();
-                if ($valeur >= $values->getBorneInferieur() && $valeur <= $values->getBorneSuperieur()) {
-                    $commision = $values->getValeur();
-                    $envoi = ($commision * 20) / 100;
-                    break;
-                }
+            $transRepo = $this->getDoctrine()->getRepository(Transaction::class)->findOneBy(['code' => $data]);
+            // var_dump($transRepo);die();
+            if (!$transRepo) {
+                return $this->json([
+                    'mesag' => 'Code incorrect'
+                ]);
             }
-            $user = $this->getUser();
-            $retrait->setIduser($user);
-            $retrait->setFrais($values);
+            $transRepo->setDater(new \DateTime());
+            $transRepo->setCni($data['cni']);
+            $users = $this->getUser();
+            $transRepo->setUserr($users);
             $rec = $this->getDoctrine()->getRepository(Compte::class)->findOneBy(['numbcompte' => $data]);
-            if ($rec->getSolde() > $retrait->getSomme()) {
-                $rec->setSolde($rec->getSolde() + $retrait->getSomme() + $envoi);
-                $errors = $validator->validate($retrait);
+            if ($rec->getSolde() > $trans->getSomme()) {
+                $rec->setSolde($rec->getSolde() + $trans->getSomme());
+                $errors = $validator->validate($trans);
                 if (count($errors)) {
                     $errors = $serializer->serialize($errors, 'json');
                     return new Response($errors, 500);
                 }
                 $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->persist($retrait);
                 $entityManager->flush();
-                return new Response('Retrait avec effectué avec succés');
+                // var_dump($data);die();
+
+                return new Response('Retrait effectué avec succés!!');
+            } else {
+                return new Response('le solde de votre compte ne vous permet pas de faire le retrait');
             }
         }
     }

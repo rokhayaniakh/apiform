@@ -11,9 +11,10 @@ return [
         '/api/kya' => [[['_route' => 'kya', '_controller' => 'App\\Controller\\ApiController::contrat'], null, null, null, false, false, null]],
         '/partenaire' => [
             [['_route' => 'app_partenaire_index', '_controller' => 'App\\Controller\\PartenaireController::index'], null, ['GET' => 0], null, false, false, null],
-            [['_route' => 'partenaire', '_controller' => 'App\\Controller\\PartenaireController::ajoutp'], null, null, null, false, false, null],
+            [['_route' => 'partenaire', '_controller' => 'App\\Controller\\PartenaireController::ajoutp'], null, ['POST' => 0], null, false, false, null],
         ],
         '/ajoutcompte' => [[['_route' => 'ajoutcompte', '_controller' => 'App\\Controller\\PartenaireController::ajoutcompte'], null, ['POST' => 0], null, false, false, null]],
+        '/listerp' => [[['_route' => 'listp', '_controller' => 'App\\Controller\\PartenaireController::ListerUser'], null, ['GET' => 0], null, false, false, null]],
         '/trans' => [[['_route' => 'trans', '_controller' => 'App\\Controller\\TransController::transaction'], null, null, null, false, false, null]],
         '/retrait' => [[['_route' => 'retrait', '_controller' => 'App\\Controller\\TransController::retrait'], null, null, null, false, false, null]],
         '/api/user' => [[['_route' => 'users', '_controller' => 'App\\Controller\\UserController::register'], null, ['POST' => 0], null, false, false, null]],
@@ -25,6 +26,8 @@ return [
         ],
         '/api/bloquer' => [[['_route' => 'bloquer', '_controller' => 'App\\Controller\\UserController::bloquerdebloquer'], null, ['POST' => 0], null, false, false, null]],
         '/api/ajoutcompteuser' => [[['_route' => 'ajoutcompteuser', '_controller' => 'App\\Controller\\UserController::ajoutcomptuser'], null, ['POST' => 0], null, false, false, null]],
+        '/api/listerUser' => [[['_route' => 'listerUser', '_controller' => 'App\\Controller\\UserController::ListerUser'], null, ['GET' => 0], null, false, false, null]],
+        '/api/listerdepot' => [[['_route' => 'listerdepot', '_controller' => 'App\\Controller\\UserController::Historique'], null, ['GET' => 0], null, false, false, null]],
     ],
     [ // $regexpList
         0 => '{^(?'

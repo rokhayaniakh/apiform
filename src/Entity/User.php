@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 
+use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -41,6 +42,7 @@ class User implements UserInterface
     private $username;
 
     /**
+     * @Groups({"users"})
      * @ORM\Column(type="json")
      */
     private $roles = [];
@@ -52,12 +54,14 @@ class User implements UserInterface
     private $password;
 
     /**
+     * @Groups({"users"})
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Assert\NotBlank(message="Le champ ne doit pas être vide")
      */
     private $nomcomplet;
 
     /**
+     * @Groups({"users"})
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Assert\Email(
      *     message = "Email invalide ",
@@ -67,6 +71,7 @@ class User implements UserInterface
     private $mail;
 
     /**
+     * @Groups({"users"})
      * @ORM\Column(type="integer", nullable=true)
      * @Assert\Length(
      *      min = 9,
@@ -78,16 +83,19 @@ class User implements UserInterface
     private $tel;
 
     /**
+     * @Groups({"users"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $adresse;
 
     /**
+     * @Groups({"users"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $status;
 
     /**
+     * @Groups({"users"})
      * @ORM\ManyToOne(targetEntity="App\Entity\Compte", inversedBy="users")
      */
     private $idcompte;
@@ -107,6 +115,7 @@ class User implements UserInterface
     private $imageFile;
 
     /**
+     * @Groups({"users"})
      * @ORM\Column(type="string", length=255, nullable=true)
      * @var string
      */
@@ -123,9 +132,15 @@ class User implements UserInterface
      */
     private $transactions;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Transaction", mappedBy="userr")
+     */
+    private $transaction;
+
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
+        $this->transaction = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -157,7 +172,7 @@ class User implements UserInterface
     {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
+        // $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
     }
@@ -358,5 +373,13 @@ class User implements UserInterface
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection|Transaction[]
+     */
+    public function getTransaction(): Collection
+    {
+        return $this->transaction;
     }
 }

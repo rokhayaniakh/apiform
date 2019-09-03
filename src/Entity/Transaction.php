@@ -63,12 +63,6 @@ class Transaction
 
     /**
      * @ORM\Column(type="integer", nullable=true)
-     * @Assert\Length(
-     *      min = 13,
-     *      max = 13,
-     *      minMessage = "valeur minimum 13",
-     *      maxMessage = "valeur maximum 13"
-     * )
      */
     private $cni;
 
@@ -102,6 +96,11 @@ class Transaction
      * )
      */
     private $tele;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="transaction")
+     */
+    private $userr;
 
     public function getId(): ?int
     {
@@ -260,6 +259,18 @@ class Transaction
     public function setTele(?int $tele): self
     {
         $this->tele = $tele;
+
+        return $this;
+    }
+
+    public function getUserr(): ?User
+    {
+        return $this->userr;
+    }
+
+    public function setUserr(?User $userr): self
+    {
+        $this->userr = $userr;
 
         return $this;
     }

@@ -11,8 +11,10 @@ use App\Form\CompteType;
 use App\Entity\Partenaire;
 use App\Form\PartenaireType;
 use App\Repository\UserRepository;
+use App\Repository\PartenaireRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -21,7 +23,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use App\Repository\PartenaireRepository;
 
 
 class PartenaireController extends AbstractController
@@ -60,8 +61,7 @@ class PartenaireController extends AbstractController
         ]);
     }
     /**
-     * @Route("/partenaire", name="partenaire")
-     * @IsGranted("ROLE_SUPER_ADMIN")
+     * @Route("/partenaire", name="partenaire",methods={"POST"})
      */
     public function ajoutp(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
     {
@@ -133,7 +133,6 @@ class PartenaireController extends AbstractController
     }
     /**
      * @Route("/ajoutcompte",name="ajoutcompte",methods={"POST"})
-     * @IsGranted("ROLE_SUPER_ADMIN")
      */
 
     public function ajoutcompte(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
@@ -164,5 +163,16 @@ class PartenaireController extends AbstractController
             'mess' => 'Erreur!!!'
         ];
         return new JsonResponse($data, 500);
+    }
+    /**
+     * @Route("/listerp" , name="listp" ,methods={"GET"})
+     */
+    public function ListerUser(PartenaireRepository $partenaireRepository, SerializerInterface $serializer)
+    {
+        $par = $partenaireRepository->findAll();
+        $parte = $serializer->serialize($par, 'json', ['groups' => ['partenaires']]);
+        return new Response($parte, 200, [
+            'Content-Type' => 'application/json'
+        ]);
     }
 }
