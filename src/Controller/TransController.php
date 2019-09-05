@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Compte;
+use App\Entity\User;
 use App\Entity\Tarifs;
 use App\Entity\Type;
 use App\Form\TransactionType;
@@ -47,14 +48,14 @@ class TransController extends AbstractController
                 }
             }
             $user = $this->getUser();
-            // $user=getIdcompte();
-            // var_dump($user);die();
-            $tran->setIduser($user);
+            $id=$user->getId();
+            $us = $this->getUser()->getIdcompte();
+            $recu = $this->getDoctrine()->getRepository(User::class)->findOneBy(['id' => $id]);
+            $tran->setIduser($recu);
             $tran->setFrais($values);
-            $rec = $this->getDoctrine()->getRepository(Compte::class)->findOneBy(['numbcompte' => $data]);
+            $rec = $this->getDoctrine()->getRepository(Compte::class)->findOneBy(['id' => $us]);
             if ($rec->getSolde() > $tran->getSomme()) {
                 $rec->setSolde($rec->getSolde() - $tran->getSomme() + $envoi);
-
                 $errors = $validator->validate($tran);
                 if (count($errors)) {
                     $errors = $serializer->serialize($errors, 'json');
@@ -79,10 +80,8 @@ class TransController extends AbstractController
         $form->handleRequest($request);
         $data = $request->request->all();
         $form->submit($data);
-
         if ($form->isSubmitted()) {
             $transRepo = $this->getDoctrine()->getRepository(Transaction::class)->findOneBy(['code' => $data]);
-            // var_dump($transRepo);die();
             if (!$transRepo) {
                 return $this->json([
                     'mesag' => 'Code incorrect'
@@ -90,11 +89,27 @@ class TransController extends AbstractController
             }
             $transRepo->setDater(new \DateTime());
             $transRepo->setCni($data['cni']);
-            $users = $this->getUser();
-            $transRepo->setUserr($users);
-            $rec = $this->getDoctrine()->getRepository(Compte::class)->findOneBy(['numbcompte' => $data]);
-            if ($rec->getSolde() > $trans->getSomme()) {
-                $rec->setSolde($rec->getSolde() + $trans->getSomme());
+            $valeur=$transRepo->getSomme();
+            $tarif = $this->getDoctrine()->getRepository(Tarifs::class)->findAll();
+            foreach ($tarif as $values) {
+                $values->getBorneInferieur();
+                $values->getBorneSuperieur();
+                $values->getValeur();
+                if ($valeur >= $values->getBorneInferieur() && $valeur <= $values->getBorneSuperieur()) {
+                    $commision = $values->getValeur();
+                    $envoi = ($commision * 20) / 100;
+                    break;
+                }
+            }
+            $user = $this->getUser();
+            $id=$user->getId();
+            $us = $this->getUser()->getIdcompte();
+            $rec = $this->getDoctrine()->getRepository(User::class)->findOneBy(['id' => $id]);
+            $transRepo->setUserr($rec);
+            $rec = $this->getDoctrine()->getRepository(Compte::class)->findOneBy(['id' => $us]);
+        
+            if ($rec->getSolde() > $trans->getSomme()){
+                $rec->setSolde($rec->getSolde() + $transRepo->getSomme()+$envoi);
                 $errors = $validator->validate($trans);
                 if (count($errors)) {
                     $errors = $serializer->serialize($errors, 'json');
@@ -102,8 +117,6 @@ class TransController extends AbstractController
                 }
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->flush();
-                // var_dump($data);die();
-
                 return new Response('Retrait effectué avec succés!!');
             } else {
                 return new Response('le solde de votre compte ne vous permet pas de faire le retrait');
@@ -111,3 +124,4 @@ class TransController extends AbstractController
         }
     }
 }
+

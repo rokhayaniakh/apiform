@@ -53,7 +53,6 @@ class UserController extends AbstractController
                     $form->get('password')->getData()
                 )
             );
-        
             $partenaire = $this->getUser()->getIdpartenaire();
             $user->setIdpartenaire($partenaire);
             //var_dump($data['roles']);die();
@@ -162,17 +161,16 @@ class UserController extends AbstractController
         return new JsonResponse($data, 500);
     }
 
-    /**
-     * @Route("/login_check", name="login", methods={"POST"})
-     */
-    public function login(Request $request)
-    {
-        $user = $this->getUser();
-        return $this->json([
-            'usernam' => $user->getUsername(),
-            'role' => $user->getRoles()
-        ]);
-    }
+    // public function login(Request $request)
+    // {
+    //     $user = $this->getUser();
+    //     return $this->json([
+    //         'username' => $user->getUsername(),
+    //         'roles' => $user->getRoles(),
+    //         'id' => $user->getId(),
+    //         'status' => $user->getStatus()
+    //     ]);
+    // }
 
     /**
      * @Route("/login_check", name="login", methods={"POST"})
@@ -206,9 +204,13 @@ class UserController extends AbstractController
         $token = $JWTEncoder->encode([
             'username' => $user->getUsername(),
             'roles' => $user->getRoles(),
+            'id' => $user->getId(),
+            'status' => $user->getStatus(),
+            'idcompte' => $user->getIdcompte(),
             'exp' => time() + 86400 // 1 day expiration
         ]);
-
+        $JWTEncoder->decode( $token);
+//var_dump($entityManager);die();
         return $this->json([
             'token' => $token
         ]);
