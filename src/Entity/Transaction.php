@@ -62,7 +62,7 @@ class Transaction
     private $tel;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="bigint", nullable=true)
      */
     private $cni;
 
@@ -101,6 +101,11 @@ class Transaction
      * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="transaction")
      */
     private $userr;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $status;
 
     public function getId(): ?int
     {
@@ -271,6 +276,18 @@ class Transaction
     public function setUserr(?User $userr): self
     {
         $this->userr = $userr;
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?string $status): self
+    {
+        $this->status = $status;
 
         return $this;
     }

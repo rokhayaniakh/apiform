@@ -19,6 +19,9 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+/**
+ * @Route("/api")
+ */
 class TransController extends AbstractController
 {
     /**
@@ -48,10 +51,9 @@ class TransController extends AbstractController
                 }
             }
             $user = $this->getUser();
-            $id=$user->getId();
-            $us = $this->getUser()->getIdcompte();
-            $recu = $this->getDoctrine()->getRepository(User::class)->findOneBy(['id' => $id]);
-            $tran->setIduser($recu);
+            $us = $user->getIdcompte();
+            //$recu = $this->getDoctrine()->getRepository(User::class)->findOneBy(['id' => $id]);
+            $tran->setIduser($user);
             $tran->setFrais($values);
             $rec = $this->getDoctrine()->getRepository(Compte::class)->findOneBy(['id' => $us]);
             if ($rec->getSolde() > $tran->getSomme()) {
@@ -81,12 +83,20 @@ class TransController extends AbstractController
         $data = $request->request->all();
         $form->submit($data);
         if ($form->isSubmitted()) {
+        $status=$transRepo->getStatus('status');
+        var_dump($status);die();
+            // $status = $this->getDoctrine()->getRepository(Transaction::class)->findOneBy(['status' => $data]);
             $transRepo = $this->getDoctrine()->getRepository(Transaction::class)->findOneBy(['code' => $data]);
             if (!$transRepo) {
                 return $this->json([
                     'mesag' => 'Code incorrect'
                 ]);
+            }else if($transRepo->getCode()==['code' => $data] && $status=='retrait'){
+                return $this->json([
+                    'mesag' => 'dejà retirer'
+                ]);
             }
+    
             $transRepo->setDater(new \DateTime());
             $transRepo->setCni($data['cni']);
             $valeur=$transRepo->getSomme();
@@ -107,7 +117,6 @@ class TransController extends AbstractController
             $rec = $this->getDoctrine()->getRepository(User::class)->findOneBy(['id' => $id]);
             $transRepo->setUserr($rec);
             $rec = $this->getDoctrine()->getRepository(Compte::class)->findOneBy(['id' => $us]);
-        
             if ($rec->getSolde() > $trans->getSomme()){
                 $rec->setSolde($rec->getSolde() + $transRepo->getSomme()+$envoi);
                 $errors = $validator->validate($trans);
@@ -118,7 +127,8 @@ class TransController extends AbstractController
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->flush();
                 return new Response('Retrait effectué avec succés!!');
-            } else {
+            } 
+        else {
                 return new Response('le solde de votre compte ne vous permet pas de faire le retrait');
             }
         }

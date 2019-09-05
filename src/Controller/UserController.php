@@ -204,9 +204,9 @@ class UserController extends AbstractController
         $token = $JWTEncoder->encode([
             'username' => $user->getUsername(),
             'roles' => $user->getRoles(),
-            'id' => $user->getId(),
-            'status' => $user->getStatus(),
-            'idcompte' => $user->getIdcompte(),
+            // 'id' => $user->getId(),
+            // 'status' => $user->getStatus(),
+            // 'idcompte' => $user->getIdcompte(),
             'exp' => time() + 86400 // 1 day expiration
         ]);
         $JWTEncoder->decode( $token);
