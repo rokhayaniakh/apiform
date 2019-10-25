@@ -76,7 +76,7 @@ class __TwigTemplate_ce4ff3a1ff2ee02258b95cc5747fa5b5ad40a2db5f37fd99493ff126ac5
     <p>Dans le cadre d'un contrat de services, le prestataire fournit au client une prestation à caractère intellectuel.
         <br>
         Il lui apporte son savoir-faire pour l'aider à améliorer sa rentabilité en lui permettant 
-                                        de tirer un meilleur parti de sa structure ou de réduire ses coûts.
+        de tirer un meilleur parti de sa structure ou de réduire ses coûts.
     </p>
     <p>Cette prestation peut s'exercer dans des domaines très divers tels que :</p>
     <ul>
@@ -86,7 +86,6 @@ class __TwigTemplate_ce4ff3a1ff2ee02258b95cc5747fa5b5ad40a2db5f37fd99493ff126ac5
         <li>la publicité,</li>
         <li>etc.</li>
     </ul>
-
     <h4>Notice:</h4>
     <p>Il est important que le contrat que les parties doivent signer pour toute prestation de service
                                             indique très précisément :</p>
@@ -212,7 +211,7 @@ Enfin, il s’engage à observer la confidentialité la plus totale en ce qui co
     <p>Dans le cadre d'un contrat de services, le prestataire fournit au client une prestation à caractère intellectuel.
         <br>
         Il lui apporte son savoir-faire pour l'aider à améliorer sa rentabilité en lui permettant 
-                                        de tirer un meilleur parti de sa structure ou de réduire ses coûts.
+        de tirer un meilleur parti de sa structure ou de réduire ses coûts.
     </p>
     <p>Cette prestation peut s'exercer dans des domaines très divers tels que :</p>
     <ul>
@@ -222,7 +221,6 @@ Enfin, il s’engage à observer la confidentialité la plus totale en ce qui co
         <li>la publicité,</li>
         <li>etc.</li>
     </ul>
-
     <h4>Notice:</h4>
     <p>Il est important que le contrat que les parties doivent signer pour toute prestation de service
                                             indique très précisément :</p>

@@ -36,7 +36,6 @@ class TransactionRepository extends ServiceEntityRepository
     }
     */
 
-
     public function findByCode($value): ?Transaction
     {
         return $this->createQueryBuilder('u')
@@ -44,5 +43,21 @@ class TransactionRepository extends ServiceEntityRepository
             ->setParameter('val', $value)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+    public function getDays($debut, $fin, $user)
+    {
+        $from = new \DateTime($debut->format("Y-m-d") . " 00:00:00");
+        $to   = new \DateTime($fin->format("Y-m-d") . " 23:59:59");
+
+        $qb = $this->createQueryBuilder("t");
+        $qb
+            ->andWhere('t.datetran BETWEEN :from AND :to')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->andWhere('t.iduser = :val')
+            ->setParameter('val', $user);
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 }

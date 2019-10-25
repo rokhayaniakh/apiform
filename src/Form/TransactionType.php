@@ -24,6 +24,7 @@ class TransactionType extends AbstractType
             ->add('tel')
             ->add('cni')
             ->add('tele')
+            ->add('status')
             // ->add('iduser')
             ->add('idtype', EntityType::class ,['class'=>Type::class,'choice_label' =>'idtype'])
         ;

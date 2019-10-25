@@ -2,10 +2,10 @@
 
 namespace App\Entity;
 
+use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-
 
 /**
  * @ApiResource()
@@ -21,16 +21,19 @@ class Transaction
     private $id;
 
     /**
+     * @Groups({"users"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $agence;
 
     /**
+     * @Groups({"users"})
      * @ORM\Column(type="integer", nullable=true)
      */
     private $somme;
 
     /**
+     * @Groups({"users"})
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $datetran;
@@ -41,11 +44,13 @@ class Transaction
     private $code;
 
     /**
+     * @Groups({"users"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $nomcomplet;
 
     /**
+     * @Groups({"users"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $nomcompletben;
@@ -58,11 +63,13 @@ class Transaction
      *      minMessage = "valeur minimum 9",
      *      maxMessage = "valeur maximum 9"
      * )
+     * @Groups({"users"})
      */
     private $tel;
 
     /**
      * @ORM\Column(type="bigint", nullable=true)
+     * @Groups({"users"})
      */
     private $cni;
 
@@ -78,11 +85,13 @@ class Transaction
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Tarifs", inversedBy="transactions")
+     * @Groups({"users"})
      */
     private $frais;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
+     * @Groups({"users"})
      */
     private $dater;
 
@@ -94,6 +103,7 @@ class Transaction
      *      minMessage = "valeur minimum 9",
      *      maxMessage = "valeur maximum 9"
      * )
+     * @Groups({"users"})
      */
     private $tele;
 
@@ -104,6 +114,7 @@ class Transaction
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups({"users"})
      */
     private $status;
 

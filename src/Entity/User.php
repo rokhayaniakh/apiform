@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-
 use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -24,6 +23,7 @@ use \Symfony\Component\HttpFoundation\File\UploadedFile;
 class User implements UserInterface
 {
     /**
+     * @Groups({"users"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -31,6 +31,7 @@ class User implements UserInterface
     private $id;
 
     /**
+     * @Groups({"users"})
      * @ORM\Column(type="string", length=180, unique=true)
      * @Assert\Length(
      *      min = 6,
@@ -136,6 +137,11 @@ class User implements UserInterface
      * @ORM\OneToMany(targetEntity="App\Entity\Transaction", mappedBy="userr")
      */
     private $transaction;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $genre;
 
     public function __construct()
     {
@@ -381,5 +387,17 @@ class User implements UserInterface
     public function getTransaction(): Collection
     {
         return $this->transaction;
+    }
+
+    public function getGenre(): ?string
+    {
+        return $this->genre;
+    }
+
+    public function setGenre(?string $genre): self
+    {
+        $this->genre = $genre;
+
+        return $this;
     }
 }

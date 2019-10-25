@@ -16,6 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Partenaire
 {
     /**
+     * @Groups({"partenaires"})
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -44,7 +45,6 @@ class Partenaire
     private $adresse;
 
     /**
-     *  @Groups({"partenaires"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $status;

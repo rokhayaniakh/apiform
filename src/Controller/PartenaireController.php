@@ -24,12 +24,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-
 class PartenaireController extends AbstractController
 {
-
     /**
-     * @Route("/partenaire" ,methods={"GET"})
+     * @Route("/contrat" ,methods={"GET"})
      */
     public function index(PartenaireRepository $partenaireRepository)
     {
@@ -72,6 +70,7 @@ class PartenaireController extends AbstractController
         $data = $request->request->all();
         $form->submit($data);
         if ($form->isSubmitted()) {
+            $par->setStatus("debloquer");
             $errors = $validator->validate($par);
             if (count($errors)) {
                 $errors = $serializer->serialize($errors, 'json');
@@ -98,6 +97,7 @@ class PartenaireController extends AbstractController
                 $data = $request->request->all();
                 $form->submit($data);
                 if ($form->isSubmitted()) {
+                    $user->setStatus("debloquer");
                     $user->setIdpartenaire($par);
                     $user->setIdcompte($comp);
                     $user->setRoles(["ROLE_ADMIN"]);
@@ -144,6 +144,11 @@ class PartenaireController extends AbstractController
         $data = $request->request->all();
         $form->submit($data);
         if ($form->isSubmitted()) {
+            $rec = $this->getDoctrine()->getRepository(Partenaire::class)->findOneBy(['id' => $data]);
+            if (!$rec) {
+                return "Ce partenaire n'existe pas";
+            }
+            $comp->setIdpartenaire($rec);
             $comp->setNumbcompte($random);
             $errors = $validator->validate($comp);
             if (count($errors)) {
@@ -174,5 +179,30 @@ class PartenaireController extends AbstractController
         return new Response($parte, 200, [
             'Content-Type' => 'application/json'
         ]);
+    }
+    /** 
+     * @Route("/bloquerPar/{id}" , name="bloquer", methods={"GET"})
+     */
+    public function bloquerPar(Request $request, PartenaireRepository $parRepo, Partenaire $pars, EntityManagerInterface $entityManager): Response
+    {
+        $values = json_decode($request->getContent());
+        $user = $parRepo->find($pars->getId());
+        if ($user->getStatus() == "debloquer") {
+            $user->SetStatus("bloquer");
+            $entityManager->flush();
+            $data = [
+                'statu' => 200,
+                'messag' => 'Le partenaire a été bloquer'
+            ];
+            return new JsonResponse($data);
+        } else {
+            $user->SetStatus("debloquer");
+            $entityManager->flush();
+            $data = [
+                'status' => 200,
+                'message' => 'Le partenaire a été debloquer'
+            ];
+            return new JsonResponse($data);
+        }
     }
 }

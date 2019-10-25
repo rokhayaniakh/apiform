@@ -24,6 +24,14 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
  */
 class TransController extends AbstractController
 {
+    private $dateFrom;
+    private $dateTo;
+    public function __construct()
+    {
+        $this->dateFrom='dateFrom';
+        $this->dateTo='dateTo';
+    }
+    
     /**
      * @Route("/trans", name="trans")
      */
@@ -52,7 +60,6 @@ class TransController extends AbstractController
             }
             $user = $this->getUser();
             $us = $user->getIdcompte();
-            //$recu = $this->getDoctrine()->getRepository(User::class)->findOneBy(['id' => $id]);
             $tran->setIduser($user);
             $tran->setFrais($values);
             $rec = $this->getDoctrine()->getRepository(Compte::class)->findOneBy(['id' => $us]);
@@ -66,7 +73,7 @@ class TransController extends AbstractController
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($tran);
                 $entityManager->flush();
-                return new Response('Le transfert a été effectué avec succés. Voici le code : ' . $tran->getCode());
+                return new Response('Bienvenu(e) chez RafTafService   ' . $tran->getNomcomplet() . ' vous a envoyez ' . $tran->getSomme() . 'fcfa ' . ' votre code est : ' . $tran->getCode());
             } else {
                 return new Response('Le solde de votre compte ne vous permet d effectuer une transaction');
             }
@@ -83,23 +90,22 @@ class TransController extends AbstractController
         $data = $request->request->all();
         $form->submit($data);
         if ($form->isSubmitted()) {
-        $status=$transRepo->getStatus('status');
-        var_dump($status);die();
-            // $status = $this->getDoctrine()->getRepository(Transaction::class)->findOneBy(['status' => $data]);
             $transRepo = $this->getDoctrine()->getRepository(Transaction::class)->findOneBy(['code' => $data]);
             if (!$transRepo) {
                 return $this->json([
                     'mesag' => 'Code incorrect'
                 ]);
-            }else if($transRepo->getCode()==['code' => $data] && $status=='retrait'){
-                return $this->json([
-                    'mesag' => 'dejà retirer'
-                ]);
             }
-    
+            // else {
+            //     $data = $serializer->serialize($transRepo, 'json');
+            //     return new Response($data, 200, [
+            //         'Content-Type' => 'application/json'
+            //     ]);
+            // }
+            $transRepo->setStatus('retrait');
             $transRepo->setDater(new \DateTime());
             $transRepo->setCni($data['cni']);
-            $valeur=$transRepo->getSomme();
+            $valeur = $transRepo->getSomme();
             $tarif = $this->getDoctrine()->getRepository(Tarifs::class)->findAll();
             foreach ($tarif as $values) {
                 $values->getBorneInferieur();
@@ -112,13 +118,13 @@ class TransController extends AbstractController
                 }
             }
             $user = $this->getUser();
-            $id=$user->getId();
+            $id = $user->getId();
             $us = $this->getUser()->getIdcompte();
             $rec = $this->getDoctrine()->getRepository(User::class)->findOneBy(['id' => $id]);
             $transRepo->setUserr($rec);
             $rec = $this->getDoctrine()->getRepository(Compte::class)->findOneBy(['id' => $us]);
-            if ($rec->getSolde() > $trans->getSomme()){
-                $rec->setSolde($rec->getSolde() + $transRepo->getSomme()+$envoi);
+            if ($rec->getSolde() > $trans->getSomme()) {
+                $rec->setSolde($rec->getSolde() + $transRepo->getSomme() + $envoi);
                 $errors = $validator->validate($trans);
                 if (count($errors)) {
                     $errors = $serializer->serialize($errors, 'json');
@@ -127,11 +133,96 @@ class TransController extends AbstractController
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->flush();
                 return new Response('Retrait effectué avec succés!!');
-            } 
-        else {
-                return new Response('le solde de votre compte ne vous permet pas de faire le retrait');
+                //}
+            } else {
+                return new Response('le solde de votre compte ne vous permet pas de faire le retrait', 500);
             }
         }
     }
-}
+    /**
+     * @Route("/testretrait", name="testretrait")
+     */
+    public function testretrait(Request $request,  TransactionRepository $transRepo, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
+    {
+        $trans = new Transaction();
+        $form = $this->createForm(TransactionType::class, $trans);
+        $form->handleRequest($request);
+        $data = $request->request->all();
+        $form->submit($data);
+        if ($form->isSubmitted()) {
+            $transRepo = $this->getDoctrine()->getRepository(Transaction::class)->findOneBy(['code' => $data]);
+            if (!$transRepo) {
+                return $this->json([
+                    'mesag' => 'Code incorrect'
+                ]);
+            } else {
+                $data = $serializer->serialize($transRepo, 'json');
+                return new Response($data, 200, [
+                    'Content-Type' => 'application/json'
+                ]);
+            }
+        }
+    }
+    /**
+     * @Route("/com", name="com")
+     */
+    public function commission(Request $request,  TransactionRepository $transRepo, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer)
+    {
+        $trans = new Transaction();
+        $form = $this->createForm(TransactionType::class, $trans);
+        $form->handleRequest($request);
+        $data = $request->request->all();
+        $form->submit($data);
+        if ($form->isSubmitted()) {
+            $valeur = $form->get('somme')->getData();
+            $tarif = $this->getDoctrine()->getRepository(Tarifs::class)->findAll();
+            foreach ($tarif as $values) {
+                $values->getBorneInferieur();
+                $values->getBorneSuperieur();
+                $values->getValeur();
+                if ($valeur >= $values->getBorneInferieur() && $valeur <= $values->getBorneSuperieur()) {
+                    $commision = $values->getValeur();
+                    $envoi = ($commision * 10) / 100;
+                    break;
+                }
+            }
+        }
+        return new Response($commision);
+    }
+    /**
+     * @Route("/listrans", name="listrans")
+     */
+    public function listTransaction(TransactionRepository $transRepository, SerializerInterface $serializer)
+    {
+        $user = $this->getUser();
+        $trans = $transRepository->findBy(['iduser' => $user]);
+        $transa = $serializer->serialize($trans, 'json', ['groups' => ['users']]);
+        return new Response($transa, 200, [
+            'Content-Type' => 'application/json'
+        ]);
+    }
+    /**  
+     * @Route("/listerenvoi", name="listerenvoi" ,methods={"GET","POST"})
+     */
 
+    public function listenvoi(SerializerInterface $serializer,Request $request):Response
+    {
+        $values = json_decode($request->getContent());
+        if (!$values) {
+            $values = $request->request->all();
+        }
+        $debut = new \DateTime($values->dateFrom);
+        $fin   =  new \DateTime($values->dateTo);
+        $user=$this->getUser();
+        $days = $this->getDoctrine()
+        ->getRepository(Transaction::class)
+        ->getDays($debut, $fin, $user);
+        $values = $serializer->serialize($days, 'json', [
+            'groups' => ['users']
+        ]);
+                return new Response (
+            $values, 200, [
+            'Content-Type' => 'application/json'
+        ]);
+    }
+}

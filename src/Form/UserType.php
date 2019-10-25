@@ -42,6 +42,7 @@ class UserType extends AbstractType
             ->add('tel')
             ->add('adresse')
             ->add('status')
+            ->add('genre')
             ->add('imageFile' ,VichImageType::class)
             #->add('updatedAt')
             // ->add('idcompte', EntityType::class ,['class'=>Compte::class,'choice_label' =>'idcompte']

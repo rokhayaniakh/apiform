@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -17,21 +18,25 @@ class Compte
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"compte"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
+     * @Groups({"compte"})
      */
     private $solde;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
+     * @Groups({"compte"})
      */
     private $numbcompte;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Partenaire", inversedBy="comptes")
+     * @Groups({"compte"})
      */
     private $idpartenaire;
 

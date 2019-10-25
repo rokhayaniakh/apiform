@@ -9,6 +9,7 @@ use App\Entity\Compte;
 use App\Form\UserType;
 use App\Form\DepotType;
 use App\Repository\DepotRepository;
+use App\Repository\CompteRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -47,6 +48,7 @@ class UserController extends AbstractController
         $file = $request->files->all()['imageName'];
         $form->submit($data);
         if ($form->isSubmitted()) {
+            $user->setStatus("debloquer");
             $user->setPassword(
                 $passwordEncoder->encodePassword(
                     $user,
@@ -56,7 +58,7 @@ class UserController extends AbstractController
             $partenaire = $this->getUser()->getIdpartenaire();
             $user->setIdpartenaire($partenaire);
             //var_dump($data['roles']);die();
-            $a=$data['roles'];
+            $a = $data['roles'];
             $user->setRoles(["ROLE_$a"]);
             $user->setImageFile($file);
             $user->setUpdatedAt(new \DateTime());
@@ -93,7 +95,7 @@ class UserController extends AbstractController
         $file = $request->files->all()['imageName'];
         $form->submit($data);
         if ($form->isSubmitted()) {
-            $a=$data['roles'];
+            $a = $data['roles'];
             $user->setRoles(["ROLE_$a"]);
             $user->setImageFile($file);
             $user->setUpdatedAt(new \DateTime());
@@ -145,22 +147,25 @@ class UserController extends AbstractController
                 $errors = $serializer->serialize($errors, 'json');
                 return new Response($errors, 500);
             }
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($depot);
-            $entityManager->flush();
-            $data = [
-                'stat' => 201,
-                'messa' => 'Depot Réussie'
-            ];
-            return new JsonResponse($data, 201);
-        }
-        $data = [
-            'stat' => 500,
-            'mess' => 'Erreur!!!!'
-        ];
-        return new JsonResponse($data, 500);
-    }
+            if ($depot->getMontant() >= 75000) {
 
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($depot);
+                $entityManager->flush();
+                $data = [
+                    'stat' => 201,
+                    'messa' => 'Depot Réussie'
+                ];
+                return new JsonResponse($data, 201);
+            } else {
+                $data = [
+                    'stat' => 500,
+                    'mess' => 'le montant doit être supérieur ou egal a 75000'
+                ];
+                return new JsonResponse($data, 500);
+            }
+        }
+    }
     // public function login(Request $request)
     // {
     //     $user = $this->getUser();
@@ -197,32 +202,34 @@ class UserController extends AbstractController
             ]);
         }
         if ($user->getStatus() == "bloquer") {
+            $data = [
+                'stat' => 500,
+                'mess' => 'ACCÈS REFUSÉ vous ne pouvez pas connecter !'
+            ];
+            return new JsonResponse($data, 500);
+            //    return $this->json([
+            //         'mesag' => 'ACCÈS REFUSÉ vous ne pouvez pas connecter !'
+            //     ]); 
+        }
+        if ($user->getStatus() == "debloquer" || $user->getStatus() == NULL) {
+            $token = $JWTEncoder->encode([
+                'username' => $user->getUsername(),
+                'roles' => $user->getRoles(),
+                'exp' => time() + 86400 // 1 day expiration
+            ]);
             return $this->json([
-                'mesag' => 'ACCÈS REFUSÉ vous ne pouvez pas connecter !'
+                'token' => $token
             ]);
         }
-        $token = $JWTEncoder->encode([
-            'username' => $user->getUsername(),
-            'roles' => $user->getRoles(),
-            // 'id' => $user->getId(),
-            // 'status' => $user->getStatus(),
-            // 'idcompte' => $user->getIdcompte(),
-            'exp' => time() + 86400 // 1 day expiration
-        ]);
-        $JWTEncoder->decode( $token);
-//var_dump($entityManager);die();
-        return $this->json([
-            'token' => $token
-        ]);
     }
 
     /** 
-     * @Route("/bloquer" , name="bloquer", methods={"POST"})
+     * @Route("/bloquer/{id}" , name="bloquer", methods={"GET"})
      */
-    public function bloquerdebloquer(Request $request, UserRepository $userRepo, EntityManagerInterface $entityManager): Response
+    public function bloquerdebloquer(Request $request, UserRepository $userRepo, User $users, EntityManagerInterface $entityManager): Response
     {
         $values = json_decode($request->getContent());
-        $user = $userRepo->findOneByUsername($values->username);
+        $user = $userRepo->find($users->getId());
         if ($user->getStatus() == "debloquer") {
             $user->SetStatus("bloquer");
             $entityManager->flush();
@@ -275,7 +282,8 @@ class UserController extends AbstractController
      */
     public function ListerUser(UserRepository $userRepository, SerializerInterface $serializer)
     {
-        $user = $userRepository->findAll();
+        $spec = $this->getUser();
+        $user = $userRepository->findBy(['idpartenaire' => $spec->getIdpartenaire()]);
         $users = $serializer->serialize($user, 'json', ['groups' => ['users']]);
         return new Response($users, 200, [
             'Content-Type' => 'application/json'
@@ -292,5 +300,15 @@ class UserController extends AbstractController
             'Content-Types' => 'applicatio/json'
         ]);
     }
-
+    /**
+     * @Route("/listerC" , name="listercompt" ,methods={"GET"})
+     */
+    public function Compte(CompteRepository $depotRepository, SerializerInterface $serializer)
+    {
+        $depot = $depotRepository->findAll();
+        $depots = $serializer->serialize($depot, 'json', ['groups' => ['compte']]);
+        return new Response($depots, 200, [
+            'Content-Types' => 'applicatio/json'
+        ]);
+    }
 }

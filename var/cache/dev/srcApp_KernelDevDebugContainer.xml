@@ -509,6 +509,7 @@
       <tag name="doctrine.repository_service"/>
       <argument type="service" id="doctrine"/>
     </service>
+    <service id="App\Utils\CircularReferenceHandler" class="App\Utils\CircularReferenceHandler" autowire="true" autoconfigure="true"/>
     <service id="controller_name_converter" class="Symfony\Bundle\FrameworkBundle\Controller\ControllerNameParser" public="false">
       <tag name="monolog.logger" channel="request"/>
       <argument type="service" id="kernel"/>
@@ -1565,14 +1566,6 @@
         <argument>2048</argument>
       </call>
       <call method="addListener">
-        <argument>console.command</argument>
-        <argument type="collection">
-          <argument type="service" id="debug.debug_handlers_listener"/>
-          <argument>configure</argument>
-        </argument>
-        <argument>2048</argument>
-      </call>
-      <call method="addListener">
         <argument>kernel.exception</argument>
         <argument type="collection">
           <argument type="service" id="debug.debug_handlers_listener"/>
@@ -1995,7 +1988,9 @@
       <argument type="service" id="property_info" on-invalid="ignore"/>
       <argument type="service" id="serializer.mapping.class_discriminator_resolver" on-invalid="ignore"/>
       <argument>null</argument>
-      <argument type="collection"/>
+      <argument type="collection">
+        <argument key="circular_reference_handler" type="service" id="App\Utils\CircularReferenceHandler"/>
+      </argument>
     </service>
     <service id="serializer.denormalizer.array" class="Symfony\Component\Serializer\Normalizer\ArrayDenormalizer" public="false">
       <tag name="serializer.normalizer" priority="-990"/>
@@ -2408,7 +2403,6 @@
     </service>
     <service id="security.authentication.manager" class="Symfony\Component\Security\Core\Authentication\AuthenticationProviderManager" public="false">
       <argument type="iterator">
-        <argument type="service" id="security.authentication.provider.dao.login"/>
         <argument type="service" id="security.authentication.provider.anonymous.login"/>
         <argument type="service" id="security.authentication.provider.guard.api"/>
       </argument>
@@ -2928,50 +2922,12 @@
       <argument>null</argument>
       <argument>null</argument>
       <argument type="collection">
-        <argument>json_login</argument>
         <argument>anonymous</argument>
       </argument>
       <argument>null</argument>
     </service>
     <service id=".security.request_matcher.HeUdK73" class="Symfony\Component\HttpFoundation\RequestMatcher" public="false">
       <argument>^/api/login</argument>
-    </service>
-    <service id="security.authentication.provider.dao.login" class="Symfony\Component\Security\Core\Authentication\Provider\DaoAuthenticationProvider" public="false">
-      <argument type="service" id="security.user.provider.concrete.app_user_provider"/>
-      <argument type="service" id="security.user_checker"/>
-      <argument>login</argument>
-      <argument type="service" id="security.encoder_factory.generic"/>
-      <argument>true</argument>
-    </service>
-    <service id="security.authentication.success_handler.login.json_login" class="Symfony\Component\Security\Http\Authentication\CustomAuthenticationSuccessHandler" public="false">
-      <argument type="service" id="lexik_jwt_authentication.handler.authentication_success"/>
-      <argument type="collection"/>
-      <argument>login</argument>
-    </service>
-    <service id="security.authentication.failure_handler.login.json_login" class="Symfony\Component\Security\Http\Authentication\CustomAuthenticationFailureHandler" public="false">
-      <argument type="service" id="lexik_jwt_authentication.handler.authentication_failure"/>
-      <argument type="collection"/>
-    </service>
-    <service id="security.authentication.listener.json.login" class="Symfony\Component\Security\Http\Firewall\UsernamePasswordJsonAuthenticationListener" public="false">
-      <argument type="service" id="security.token_storage"/>
-      <argument type="service" id="security.authentication.manager"/>
-      <argument type="service" id="security.http_utils"/>
-      <argument>login</argument>
-      <argument type="service" id="security.authentication.success_handler.login.json_login"/>
-      <argument type="service" id="security.authentication.failure_handler.login.json_login"/>
-      <argument type="collection">
-        <argument key="check_path">/api/login_check</argument>
-        <argument key="use_forward">false</argument>
-        <argument key="require_previous_session">false</argument>
-        <argument key="username_path">username</argument>
-        <argument key="password_path">password</argument>
-      </argument>
-      <argument type="service" id="logger" on-invalid="null"/>
-      <argument type="service" id="debug.event_dispatcher" on-invalid="null"/>
-      <argument type="service" id="property_accessor" on-invalid="null"/>
-      <call method="setSessionAuthenticationStrategy">
-        <argument type="service" id="security.authentication.session_strategy_noop"/>
-      </call>
     </service>
     <service id="security.authentication.listener.anonymous.login" class="Symfony\Component\Security\Http\Firewall\AnonymousAuthenticationListener" public="false">
       <argument type="service" id="security.token_storage"/>
@@ -2996,7 +2952,6 @@
     <service id="security.firewall.map.context.login" class="Symfony\Bundle\SecurityBundle\Security\FirewallContext" public="false">
       <argument type="iterator">
         <argument type="service" id="security.channel_listener"/>
-        <argument type="service" id="security.authentication.listener.json.login"/>
         <argument type="service" id="security.authentication.listener.anonymous.login"/>
         <argument type="service" id="security.access_listener"/>
       </argument>
@@ -5063,6 +5018,14 @@
         <argument key="serializer" type="service" id="serializer"/>
       </argument>
     </service>
+    <service id=".service_locator.vXyj3KZ" class="Symfony\Component\DependencyInjection\ServiceLocator" public="false">
+      <tag name="container.service_locator"/>
+      <argument type="collection">
+        <argument key="entityManager" type="service" id="doctrine.orm.default_entity_manager"/>
+        <argument key="parRepo" type="service" id="App\Repository\PartenaireRepository"/>
+        <argument key="pars" type="service" id=".errored..service_locator.vXyj3KZ.App\Entity\Partenaire"/>
+      </argument>
+    </service>
     <service id=".service_locator.5RV_sK8" class="Symfony\Component\DependencyInjection\ServiceLocator" public="false">
       <tag name="container.service_locator"/>
       <argument type="collection">
@@ -5072,10 +5035,31 @@
         <argument key="validator" type="service" id="validator"/>
       </argument>
     </service>
+    <service id=".service_locator.focPM19" class="Symfony\Component\DependencyInjection\ServiceLocator" public="false">
+      <tag name="container.service_locator"/>
+      <argument type="collection">
+        <argument key="serializer" type="service" id="serializer"/>
+        <argument key="transRepository" type="service" id="App\Repository\TransactionRepository"/>
+      </argument>
+    </service>
+    <service id=".service_locator.niLDFWa" class="Symfony\Component\DependencyInjection\ServiceLocator" public="false">
+      <tag name="container.service_locator"/>
+      <argument type="collection">
+        <argument key="serializer" type="service" id="serializer"/>
+      </argument>
+    </service>
     <service id=".service_locator.0xDS.HG" class="Symfony\Component\DependencyInjection\ServiceLocator" public="false">
       <tag name="container.service_locator"/>
       <argument type="collection">
         <argument key="JWTEncoder" type="service" id="lexik_jwt_authentication.encoder.lcobucci"/>
+      </argument>
+    </service>
+    <service id=".service_locator.MH_eETn" class="Symfony\Component\DependencyInjection\ServiceLocator" public="false">
+      <tag name="container.service_locator"/>
+      <argument type="collection">
+        <argument key="entityManager" type="service" id="doctrine.orm.default_entity_manager"/>
+        <argument key="userRepo" type="service" id="App\Repository\UserRepository"/>
+        <argument key="users" type="service" id=".errored..service_locator.MH_eETn.App\Entity\User"/>
       </argument>
     </service>
     <service id=".service_locator.U2OyWts" class="Symfony\Component\DependencyInjection\ServiceLocator" public="false">
@@ -5099,38 +5083,57 @@
         <argument key="serializer" type="service" id="serializer"/>
       </argument>
     </service>
-    <service id=".service_locator.7w0x1Hh" class="Symfony\Component\DependencyInjection\ServiceLocator" public="false">
+    <service id=".service_locator.fLPE55P" class="Symfony\Component\DependencyInjection\ServiceLocator" public="false">
+      <tag name="container.service_locator"/>
+      <argument type="collection">
+        <argument key="depotRepository" type="service" id="App\Repository\CompteRepository"/>
+        <argument key="serializer" type="service" id="serializer"/>
+      </argument>
+    </service>
+    <service id=".service_locator.vmp6bJz" class="Symfony\Component\DependencyInjection\ServiceLocator" public="false">
       <tag name="container.service_locator"/>
       <argument type="collection">
         <argument key="App\Controller\ApiController::contrat" type="service" id=".service_locator.0VWx6lC"/>
         <argument key="App\Controller\PartenaireController::ListerUser" type="service" id=".service_locator.eIEYWuf"/>
         <argument key="App\Controller\PartenaireController::ajoutcompte" type="service" id=".service_locator.7zWnKy7"/>
         <argument key="App\Controller\PartenaireController::ajoutp" type="service" id=".service_locator.H3qnu8f"/>
+        <argument key="App\Controller\PartenaireController::bloquerPar" type="service" id=".service_locator.vXyj3KZ"/>
         <argument key="App\Controller\PartenaireController::index" type="service" id=".service_locator.0VWx6lC"/>
+        <argument key="App\Controller\TransController::commission" type="service" id=".service_locator.5RV_sK8"/>
+        <argument key="App\Controller\TransController::listTransaction" type="service" id=".service_locator.focPM19"/>
+        <argument key="App\Controller\TransController::listenvoi" type="service" id=".service_locator.niLDFWa"/>
         <argument key="App\Controller\TransController::retrait" type="service" id=".service_locator.5RV_sK8"/>
+        <argument key="App\Controller\TransController::testretrait" type="service" id=".service_locator.5RV_sK8"/>
         <argument key="App\Controller\TransController::transaction" type="service" id=".service_locator.7zWnKy7"/>
+        <argument key="App\Controller\UserController::Compte" type="service" id=".service_locator.fLPE55P"/>
         <argument key="App\Controller\UserController::Depot" type="service" id=".service_locator.7zWnKy7"/>
         <argument key="App\Controller\UserController::Historique" type="service" id=".service_locator.G81U5Rg"/>
         <argument key="App\Controller\UserController::ListerUser" type="service" id=".service_locator.OIueEnh"/>
         <argument key="App\Controller\UserController::ajoutcaissier" type="service" id=".service_locator.H3qnu8f"/>
         <argument key="App\Controller\UserController::ajoutcomptuser" type="service" id=".service_locator.U2OyWts"/>
         <argument key="App\Controller\UserController::bloquer" type="service" id=".service_locator.0xDS.HG"/>
-        <argument key="App\Controller\UserController::bloquerdebloquer" type="service" id=".service_locator.U2OyWts"/>
+        <argument key="App\Controller\UserController::bloquerdebloquer" type="service" id=".service_locator.MH_eETn"/>
         <argument key="App\Controller\UserController::register" type="service" id=".service_locator.H3qnu8f"/>
         <argument key="App\Controller\ApiController:contrat" type="service" id=".service_locator.0VWx6lC"/>
         <argument key="App\Controller\PartenaireController:ListerUser" type="service" id=".service_locator.eIEYWuf"/>
         <argument key="App\Controller\PartenaireController:ajoutcompte" type="service" id=".service_locator.7zWnKy7"/>
         <argument key="App\Controller\PartenaireController:ajoutp" type="service" id=".service_locator.H3qnu8f"/>
+        <argument key="App\Controller\PartenaireController:bloquerPar" type="service" id=".service_locator.vXyj3KZ"/>
         <argument key="App\Controller\PartenaireController:index" type="service" id=".service_locator.0VWx6lC"/>
+        <argument key="App\Controller\TransController:commission" type="service" id=".service_locator.5RV_sK8"/>
+        <argument key="App\Controller\TransController:listTransaction" type="service" id=".service_locator.focPM19"/>
+        <argument key="App\Controller\TransController:listenvoi" type="service" id=".service_locator.niLDFWa"/>
         <argument key="App\Controller\TransController:retrait" type="service" id=".service_locator.5RV_sK8"/>
+        <argument key="App\Controller\TransController:testretrait" type="service" id=".service_locator.5RV_sK8"/>
         <argument key="App\Controller\TransController:transaction" type="service" id=".service_locator.7zWnKy7"/>
+        <argument key="App\Controller\UserController:Compte" type="service" id=".service_locator.fLPE55P"/>
         <argument key="App\Controller\UserController:Depot" type="service" id=".service_locator.7zWnKy7"/>
         <argument key="App\Controller\UserController:Historique" type="service" id=".service_locator.G81U5Rg"/>
         <argument key="App\Controller\UserController:ListerUser" type="service" id=".service_locator.OIueEnh"/>
         <argument key="App\Controller\UserController:ajoutcaissier" type="service" id=".service_locator.H3qnu8f"/>
         <argument key="App\Controller\UserController:ajoutcomptuser" type="service" id=".service_locator.U2OyWts"/>
         <argument key="App\Controller\UserController:bloquer" type="service" id=".service_locator.0xDS.HG"/>
-        <argument key="App\Controller\UserController:bloquerdebloquer" type="service" id=".service_locator.U2OyWts"/>
+        <argument key="App\Controller\UserController:bloquerdebloquer" type="service" id=".service_locator.MH_eETn"/>
         <argument key="App\Controller\UserController:register" type="service" id=".service_locator.H3qnu8f"/>
       </argument>
     </service>
@@ -5412,12 +5415,12 @@
       <argument type="service" id="security.token_storage"/>
     </service>
     <service id="debug.argument_resolver.service.inner" class="Symfony\Component\HttpKernel\Controller\ArgumentResolver\ServiceValueResolver" public="false">
-      <argument type="service" id=".service_locator.7w0x1Hh"/>
+      <argument type="service" id=".service_locator.vmp6bJz"/>
     </service>
     <service id="debug.argument_resolver.default.inner" class="Symfony\Component\HttpKernel\Controller\ArgumentResolver\DefaultValueResolver" public="false"/>
     <service id="debug.argument_resolver.variadic.inner" class="Symfony\Component\HttpKernel\Controller\ArgumentResolver\VariadicValueResolver" public="false"/>
     <service id="debug.argument_resolver.not_tagged_controller.inner" class="Symfony\Component\HttpKernel\Controller\ArgumentResolver\NotTaggedControllerValueResolver" public="false">
-      <argument type="service" id=".service_locator.7w0x1Hh"/>
+      <argument type="service" id=".service_locator.vmp6bJz"/>
     </service>
     <service id="api_platform.swagger.normalizer.api_gateway.inner" class="ApiPlatform\Core\Swagger\Serializer\DocumentationNormalizer" public="false">
       <argument type="service" id="api_platform.metadata.resource.metadata_factory.cached"/>
@@ -5454,6 +5457,8 @@
       <argument type="service" id="api_platform.metadata.property.metadata_factory.cached"/>
       <argument type="service" id="api_platform.path_segment_name_generator.underscore"/>
     </service>
+    <service id=".errored..service_locator.vXyj3KZ.App\Entity\Partenaire" class="App\Entity\Partenaire"/>
+    <service id=".errored..service_locator.MH_eETn.App\Entity\User" class="App\Entity\User"/>
     <service id="console.command_loader" class="Symfony\Component\Console\CommandLoader\ContainerCommandLoader" public="true">
       <argument type="service" id=".service_locator.Jxzaw.G"/>
       <argument type="collection">
@@ -5790,7 +5795,7 @@
     <service id="Vich\UploaderBundle\Form\Type\VichImageType" alias="vich_uploader.form.type.image" public="false"/>
     <service id="Vich\UploaderBundle\Templating\Helper\UploaderHelper" alias="vich_uploader.templating.helper.uploader_helper" public="false"/>
     <service id="Vich\UploaderBundle\Twig\Extension\UploaderExtension" alias="vich_uploader.twig.extension.uploader" public="false"/>
-    <service id="argument_resolver.controller_locator" alias=".service_locator.7w0x1Hh"/>
+    <service id="argument_resolver.controller_locator" alias=".service_locator.vmp6bJz"/>
     <service id="twig.loader.filesystem" alias="twig.loader.native_filesystem" public="false"/>
     <service id="twig.loader" alias="twig.loader.native_filesystem"/>
     <service id="api_platform.name_converter" alias="serializer.name_converter.metadata_aware"/>
